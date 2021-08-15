@@ -1,0 +1,1 @@
+python ensemble.py config/resnet/resnet18_b16x8_xunfei_face.py --tag tf_efficientnetv2_s_in21k_fold0 --options "model=tf_efficientnetv2_s_in21k" "data.train.ann_file=train_fold0.csv" "data.val.ann_file=valid_fold0.csv"
