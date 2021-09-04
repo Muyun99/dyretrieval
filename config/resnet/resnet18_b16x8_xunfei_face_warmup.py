@@ -3,6 +3,5 @@ _base_ = [
     '../_base_/schedulers/default_scheduler.py', '../_base_/default_runtime.py'
 ]
 
-# 查看是不是sampler的问题
-# dataset_sampler_type = None
-
+# warm up
+warmup_epochs = 5
