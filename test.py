@@ -15,9 +15,10 @@ from sklearn.preprocessing import normalize
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_test_features():
+    model.eval()
     test_features = []
     test_submit = []
-    test_feats_fold = []
+    test_submit_extend = []
     test_path = test_dataset.df['filename'].tolist()
     test_path = [i.split('/')[-1] for i in test_path]
     test_path = np.array(test_path)
@@ -26,22 +27,20 @@ def get_test_features():
         for data in test_dataloader:
             images = data['img']
             images = images.to(device)
-            feat = model(images)
+            if cfg.fp16 is True:
+                with autocast():
+                    feat = model(images)
+            else:
+                feat = model(images)
             test_features.append(feat.data.cpu().numpy())
 
     test_features = np.vstack(test_features)
     test_features = normalize(test_features)
 
-    test_feats_fold.append(test_features)
-    test_features = np.stack(test_feats_fold).mean(0)
-
-    # test_features_list = list(test_features)
-    # test_path_list = list(test_path)
-
-    list_distance = []
+    list_original_distance = []
     for path, feature in zip(test_path[:], test_features[:]):
         distance = np.dot(feature, test_features.T)
-        list_distance.append(distance)
+        list_original_distance.append(distance)
         pred = [x.split('/')[-1] for x in test_path[np.where(distance > 0.9)[0]]]
         if len(pred) <= 1:
             ids = distance.argsort()[::-1]
@@ -52,14 +51,36 @@ def get_test_features():
             pred
         ])
 
-    array_distance = np.stack(list_distance)
-    np.save(os.path.join(cfg.work_dir, 'distance.npy', ), array_distance)
+    list_extend_distance = []
+    for path, feature in zip(test_path[:], test_features[:]):
+        original_distance = np.dot(feature, test_features.T)
+        feature_qe = np.multiply(original_distance[np.argsort(original_distance)[::-1][:2]].reshape(2, -1), test_features[np.argsort(original_distance)[::-1][:2]]).mean(0)
+        extend_distance = np.dot(feature_qe, test_features.T)
+        list_extend_distance.append(extend_distance)
+
+        pred = [x.split('/')[-1] for x in test_path[np.where(extend_distance > 0.9)[0]]]
+        if len(pred) <= 1:
+            ids = extend_distance.argsort()[::-1]
+            pred = [x.split('/')[-1] for x in test_path[ids[:2]]]
+
+        test_submit_extend.append([
+            path.split('/')[-1],
+            pred
+        ])
+
+    array_original_distance = np.stack(list_original_distance)
+    array_extend_distance = np.stack(list_extend_distance)
+    np.save(os.path.join(cfg.work_dir, 'distance.npy', ), array_original_distance)
     np.save(os.path.join(cfg.work_dir, 'feature.npy', ), test_features)
+    np.save(os.path.join(cfg.work_dir, 'extend_distance.npy', ), array_extend_distance)
 
+    pd_test_submit = pd.DataFrame(test_submit, columns=['name', 'label'])
+    pd_test_submit['label'] = pd_test_submit['label'].apply(lambda x: ' '.join(x))
+    pd_test_submit.to_csv('submit.csv', index=False)
 
-    test_submit = pd.DataFrame(test_submit, columns=['name', 'label'])
-    test_submit['label'] = test_submit['label'].apply(lambda x: ' '.join(x))
-    test_submit.to_csv('submit.csv', index=False)
+    pd_test_submit_extend = pd.DataFrame(test_submit_extend, columns=['name', 'label'])
+    pd_test_submit_extend['label'] = pd_test_submit_extend['label'].apply(lambda x: ' '.join(x))
+    pd_test_submit_extend.to_csv('submit_extend.csv', index=False)
 
 if __name__ == '__main__':
     args = parse_args()
@@ -77,8 +98,10 @@ if __name__ == '__main__':
     set_gpu(cfg)
 
     state_dict = torch.load(cfg.model_path)
-    cfg.num_classes = state_dict['margin.weight'].shape[0]
+    # cfg.num_classes = state_dict['margin.weight'].shape[0]
+    cfg.num_classes = state_dict['classifier.weight'].shape[0]
     log_func = lambda string='': print_log(string, cfg)
+
     test_dataset = build_dataset(cfg.data.test)
     test_dataloader = build_dataloader(dataset=test_dataset, batch_size=cfg.batch_size,
                                        num_workers=cfg.num_workers, shuffle=False, pin_memory=False)

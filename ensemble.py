@@ -22,18 +22,63 @@ if __name__ == '__main__':
     df_test = pd.read_csv(path_test_csv)
     test_path = df_test['filename']
 
-    tag_b0_list = ['efficientnet_b0_fold0', 'efficientnet_b0_fold1', 'efficientnet_b0_fold2', 'efficientnet_b0_fold3', 'efficientnet_b0_fold4']
-    tag_b3_list = ['efficientnet_b3_fold0', 'efficientnet_b3_fold1', 'efficientnet_b3_fold2', 'efficientnet_b3_fold3', 'efficientnet_b3_fold4']
-    tag_21k_list = ['tf_efficientnetv2_s_in21k_fold0', 'tf_efficientnetv2_s_in21k_fold1', 'tf_efficientnetv2_s_in21k_fold2',
-                'tf_efficientnetv2_s_in21k_fold3', 'tf_efficientnetv2_s_in21k_fold4']
+    tag_b0_list = ['resnet18_b16x8_xunfei_face_tag_efficientnet_b0_fold0',
+                   'resnet18_b16x8_xunfei_face_tag_efficientnet_b0_fold1',
+                   'resnet18_b16x8_xunfei_face_tag_efficientnet_b0_fold2',
+                   'resnet18_b16x8_xunfei_face_tag_efficientnet_b0_fold3',
+                   'resnet18_b16x8_xunfei_face_tag_efficientnet_b0_fold4']
+    tag_b3_list = ['resnet18_b16x8_xunfei_face_tag_efficientnet_b3_fold0',
+                   'resnet18_b16x8_xunfei_face_tag_efficientnet_b3_fold1',
+                   'resnet18_b16x8_xunfei_face_tag_efficientnet_b3_fold2',
+                   'resnet18_b16x8_xunfei_face_tag_efficientnet_b3_fold3',
+                   'resnet18_b16x8_xunfei_face_tag_efficientnet_b3_fold4']
+    tag_21k_list = ['resnet18_b16x8_xunfei_face_tag_tf_efficientnetv2_s_in21k_fold0',
+                    'resnet18_b16x8_xunfei_face_tag_tf_efficientnetv2_s_in21k_fold1',
+                    'resnet18_b16x8_xunfei_face_tag_tf_efficientnetv2_s_in21k_fold2',
+                    'resnet18_b16x8_xunfei_face_tag_tf_efficientnetv2_s_in21k_fold3',
+                    'resnet18_b16x8_xunfei_face_tag_tf_efficientnetv2_s_in21k_fold4']
 
-    tag_list = tag_b0_list + tag_b3_list + tag_21k_list
+    tag_test = ['resnet18_b16x8_xunfei_face_tag_new_baseline_efficientnet_b0_fold_0',
+                'resnet18_b16x8_xunfei_face_warmup_tag_new_baseline_efficientnet_b0_fold_0',
+                'resnet18_b16x8_xunfei_face_warmup_REA_tag_new_baseline_efficientnet_b0_fold_0']
+    tag_new_baseline = ['resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b0_fold0',
+                        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b0_fold1',
+                        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b0_fold2']
+    tag_b3_new_baseline = ['resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b3_fold0_120epoch',
+                           'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b3_fold1_120epoch',
+                           'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b3_fold2_120epoch',
+                           'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b3_fold3_120epoch',
+                           'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b3_fold4_120epoch']
+    tag_b0_new_baseline = [
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b0_fold0_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b0_fold1_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b0_fold2_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b0_fold3_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_tag_new_baseline_efficientnet_b0_fold4_120epoch']
+
+    tag_b3_bigger = [
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size_tag_new_baseline_efficientnet_b3_fold0_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size_tag_new_baseline_efficientnet_b3_fold1_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size_tag_new_baseline_efficientnet_b3_fold2_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size_tag_new_baseline_efficientnet_b3_fold3_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size_tag_new_baseline_efficientnet_b3_fold4_120epoch',
+    ]
+
+    tag_b0_bigger = [
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size_tag_new_baseline_efficientnet_b0_fold0_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size_tag_new_baseline_efficientnet_b0_fold1_120epoch',
+        'resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size_tag_new_baseline_efficientnet_b0_fold2_120epoch'
+    ]
+
+    # tag_list = tag_new_baseline + tag_test + tag_b0_list + tag_b3_list + tag_21k_list
+    # tag_list = tag_new_baseline + tag_test
+    tag_list = tag_b3_new_baseline + tag_b0_new_baseline + tag_b3_bigger + tag_b0_bigger
 
     list_distances = []
     list_features = []
     for tag in tag_list:
-        feature = np.load(get_features(cfg, tag))
-        distance = np.load(get_distances(cfg, tag))
+        feature = np.load(os.path.join('work_dirs', tag, f'feature.npy'))
+        distance = np.load(os.path.join('work_dirs', tag, f'extend_distance.npy'))
 
         list_features.append(feature)
         list_distances.append(distance)
@@ -42,7 +87,7 @@ if __name__ == '__main__':
     ensemble_test_submit = []
 
     for path, vector_distance in zip(test_path[:], ensemble_distance[:]):
-        pred = [x.split('/')[-1] for x in test_path[np.where(vector_distance > 0.6805)[0]]]
+        pred = [x.split('/')[-1] for x in test_path[np.where(vector_distance > 0.925)[0]]]
         if len(pred) <= 1:
             ids = vector_distance.argsort()[::-1]
             pred = [x.split('/')[-1] for x in test_path[ids[:2]]]
