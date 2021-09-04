@@ -1,6 +1,7 @@
 from torch import optim
 from torch.optim.lr_scheduler import LambdaLR, StepLR, MultiStepLR, CosineAnnealingLR, ReduceLROnPlateau, CyclicLR, \
     ExponentialLR, CosineAnnealingWarmRestarts
+from warmup_scheduler import GradualWarmupScheduler
 
 
 def build_scheduler(cfg, optimizer):
@@ -45,6 +46,9 @@ def build_scheduler(cfg, optimizer):
         # >>> scheduler.step()  # scheduler.step(27), instead of scheduler(20)
         scheduler = CosineAnnealingWarmRestarts(optimizer=optimizer, T_0=cfg.lr_scheduler.T_0,
                                                 T_mult=cfg.lr_scheduler.T_mult)
+
+    if cfg.warmup_epochs != 0:
+        scheduler = GradualWarmupScheduler(optimizer=optimizer, multiplier=1, total_epoch=cfg.warmup_epochs, after_scheduler=scheduler)
 
     if scheduler is None:
         raise Exception('scheduler is wrong')
