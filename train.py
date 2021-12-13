@@ -4,7 +4,7 @@ from mmcv import Config, DictAction
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
 
-from dyret import build_model, build_optimizer, build_loss, build_scheduler, build_dataset, build_dataloader
+from dyret import build_model, build_optimizer, build_loss, build_scheduler, build_dataset, build_dataloader, build_sampler
 from tools.torch_utils import *
 
 from torch.cuda.amp import GradScaler, autocast
@@ -68,9 +68,14 @@ if __name__ == '__main__':
     log_func('[i] valid dataset is {}'.format(cfg.data.val.ann_file))
     train_dataset = build_dataset(cfg.data.train)
     valid_dataset = build_dataset(cfg.data.val)
+    if cfg.dataset_sampler_type is None:
+        train_dataloader = build_dataloader(dataset=train_dataset, batch_size=cfg.batch_size,
+                                            num_workers=cfg.num_workers, shuffle=True, pin_memory=False)
+    else:
+        train_sampler = build_sampler(cfg, train_dataset)
+        train_dataloader = build_dataloader(dataset=train_dataset, batch_size=cfg.batch_size, sampler=train_sampler,
+                                            num_workers=cfg.num_workers, shuffle=False, pin_memory=False)
 
-    train_dataloader = build_dataloader(dataset=train_dataset, batch_size=cfg.batch_size,
-                                        num_workers=cfg.num_workers, shuffle=True, pin_memory=False)
     valid_dataloader = build_dataloader(dataset=valid_dataset, batch_size=cfg.batch_size,
                                         num_workers=cfg.num_workers, shuffle=False, pin_memory=False)
 
@@ -84,6 +89,10 @@ if __name__ == '__main__':
     log_func('[i] Architecture is {}'.format(cfg.model))
     log_func('[i] Total Params: %.2fM' % (calculate_parameters(model)))
 
+    if cfg.resume_path is not None:
+        state_dict = torch.load(cfg.resume_path)
+        model.load_state_dict(state_dict)
+        log_func(f'[i] Loading weight from: {cfg.model_path}')
     if cfg.parallel:
         model = nn.DataParallel(model)
 
@@ -94,11 +103,22 @@ if __name__ == '__main__':
     ###################################################################################
     # Loss, Optimizer, LR_scheduler
     ###################################################################################
+<<<<<<< HEAD
     id_loss = build_loss(cfg)
 
     def criterion(score, feature, target):
         # return id_loss(score, target) + triplet_loss(feature, target)[0]
         return id_loss(score, target)
+=======
+    # id_loss 取值 CrossEntropyLoss、CrossEntropyLabelSmooth
+    id_loss = build_loss(cfg.loss1, num_classes=cfg.num_classes)
+
+    # triplet_loss 取值 TripletLoss
+    triplet_loss = build_loss(cfg.loss2)
+
+    def criterion(score, feature, target):
+        return id_loss(score, target) + triplet_loss(feature, target)[0]
+>>>>>>> 5b282ba08b0dbfa80cc6e1cfce0ba624310b8cfd
 
     optimizer = build_optimizer(cfg=cfg, model=model)
     scheduler = build_scheduler(cfg=cfg, optimizer=optimizer)
@@ -135,13 +155,21 @@ if __name__ == '__main__':
         optimizer.zero_grad()
         if cfg.fp16 is True:
             with autocast():
+<<<<<<< HEAD
                 cls_score, global_features = model(images, labels)
+=======
+                cls_score, global_features = model(images)
+>>>>>>> 5b282ba08b0dbfa80cc6e1cfce0ba624310b8cfd
                 loss = criterion(score=cls_score, feature=global_features, target=labels)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
         else:
+<<<<<<< HEAD
             cls_score, global_features = model(images, labels)
+=======
+            cls_score, global_features = model(images)
+>>>>>>> 5b282ba08b0dbfa80cc6e1cfce0ba624310b8cfd
             loss = criterion(score=cls_score, feature=global_features, target=labels)
             loss.backward()
             optimizer.step()
@@ -158,10 +186,10 @@ if __name__ == '__main__':
             learning_rate = float(get_learning_rate_from_optimizer(optimizer))
             time = train_timer.tok(clear=True)
 
-            log_func(f'[i] iteration={iteration + 1}, \
-                learning_rate={learning_rate}, \
-                loss={loss}, \
-                time={time} sec')
+            log_func(f'[i] iteration = {iteration + 1} \
+                time = {time} sec \
+                lr = {learning_rate} \
+                loss = {loss:.4f}')
 
             writer.add_scalar('Train/loss', loss, iteration)
             writer.add_scalar('Train/learning_rate', learning_rate, iteration)
@@ -171,18 +199,31 @@ if __name__ == '__main__':
         #################################################################################################
         if (iteration + 1) % val_iteration == 0:
             eval_timer.tik()
+            model.eval()
+
             threahold, f1_score = valid_dataset.evaluate(cfg=cfg, model=model, valid_dataloader=valid_dataloader)
+
+            model.train()
             time = eval_timer.tok(clear=True)
+
             if best_f1_score < f1_score:
                 best_f1_score = f1_score
                 best_threahold = threahold
                 save_model_func()
+                best_flag = 1
+            else:
+                best_flag = 0
+
+
+            log_func(f'[i] iteration = {iteration + 1} \
+                time = {time} sec \
+                valid_F1 = {f1_score*100 :.4f} \
+                best_valid_F1 = {best_f1_score*100 :.4f}'
+                )
+            if best_flag == 1:
                 log_func('[i] save models')
 
-            log_func(f'[i] iteration={iteration + 1}, \
-                valid_F1={f1_score}%, \
-                best_valid_F1={best_f1_score}%, \
-                time={time} sec')
+
 
             writer.add_scalar('Evaluation/valid_F1', f1_score, iteration)
             writer.add_scalar('Evaluation/best_valid_F1', best_f1_score, iteration)

@@ -3,6 +3,7 @@ from torch import nn
 import math
 import torch
 import torch.nn.functional as F
+from tools.torch_utils import weights_init_classifier, weights_init_kaiming
 
 
 class ArcModule(nn.Module):
@@ -41,12 +42,64 @@ class ArcModule(nn.Module):
         return outputs
 
 class retrievalNet(nn.Module):
-    def __init__(self, model_name, pretrained, num_classes):
+    def __init__(self, model_name, pretrained, num_classes, bnn_neck):
         super(retrievalNet, self).__init__()
+<<<<<<< HEAD
 
         self.num_classes = num_classes
         self.model = timm.create_model(model_name=model_name, pretrained=pretrained, num_classes=self.num_classes)
         
+=======
+        self.model = timm.create_model(model_name=model_name, pretrained=pretrained, num_classes=num_classes)
+        self.bnn_neck = bnn_neck
+        self.num_classes = num_classes
+
+        if 'resnet' in model_name:
+            self.in_planes = self.model.head.fc.in_channels
+            self.model.head.fc = nn.Identity()
+        elif 'efficientnet' in model_name:
+            self.in_planes = self.model.classifier.in_features
+            self.model.classifier = nn.Identity()
+        elif 'se' in model_name:
+            self.in_planes = self.model.last_linear.in_features
+            self.model.last_linear = nn.Identity()
+
+        # self.margin = ArcModule(in_features=self.in_planes, out_features=num_classes)
+
+        if self.bnn_neck is True:
+            self.bottleneck = nn.BatchNorm1d(self.in_planes)
+            self.bottleneck.bias.requires_grad_(False)  # no shift
+            self.classifier = nn.Linear(self.in_planes, self.num_classes, bias=False)
+
+            self.bottleneck.apply(weights_init_kaiming)
+            self.classifier.apply(weights_init_classifier)
+        else:
+            self.classifier = nn.Linear(self.in_planes, self.num_classes)
+
+    def forward(self, imgs):
+        global_features = self.model(imgs)
+        global_features = F.normalize(global_features)
+
+        if self.bnn_neck is True:
+            features = self.bottleneck(global_features)
+        else:
+            features = global_features
+
+        if self.training:
+            cls_score = self.classifier(features)
+            return cls_score, global_features
+        else:
+            # print("Test with feature after BN")
+            return features
+
+class retrievalNet_margin(nn.Module):
+    def __init__(self, model_name, pretrained, num_classes, bnn_neck):
+        super(retrievalNet_margin, self).__init__()
+
+        self.num_classes = num_classes
+        self.model = timm.create_model(model_name=model_name, pretrained=pretrained, num_classes=self.num_classes)
+
+>>>>>>> 5b282ba08b0dbfa80cc6e1cfce0ba624310b8cfd
 
         if 'resnet' in model_name:
             self.in_planes = self.model.head.fc.in_channels
@@ -59,6 +112,10 @@ class retrievalNet(nn.Module):
             self.model.last_linear = nn.Identity()
 
         self.margin = ArcModule(in_features=self.in_planes, out_features=self.num_classes)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5b282ba08b0dbfa80cc6e1cfce0ba624310b8cfd
 
     def forward(self, imgs, labels=None):
         global_features = self.model(imgs)
@@ -67,4 +124,9 @@ class retrievalNet(nn.Module):
             cls_score = self.margin(global_features, labels)
             return cls_score, global_features
         else:
+<<<<<<< HEAD
             return global_features
+=======
+            return global_features
+
+>>>>>>> 5b282ba08b0dbfa80cc6e1cfce0ba624310b8cfd

@@ -63,10 +63,18 @@ def example():
     print(len(df['label'].unique()))
     print(df['label'].max())
 
+def get_id_distribution():
+    df = pd.read_csv(os.path.join(cfg.path_save_trainval_csv, 'train_fold0.csv'))
+    print(df['label'].describe())
+    df.plot.hist(bins=len(df['label'].unique()), alpha=0.5)
+    plt.show()
+
+
 if __name__ == '__main__':
     cfg = Config.fromfile('config_data_utils_test.py')
 
     # generate_train_csv()
-    generate_test_csv()
+    # generate_test_csv()
     # split_train_val()
     # example()
+    get_id_distribution()

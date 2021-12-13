@@ -33,7 +33,7 @@ class competition_dataset(BaseDataset):
                 info = {'img': img, 'gt_label': gt_label}
                 data_infos.append(info)
         else:
-            for img in zip(self.imgs):
+            for img in self.imgs:
                 info = {'img': img}
                 data_infos.append(info)
 
@@ -82,3 +82,18 @@ class competition_dataset(BaseDataset):
                 best_threahold = threahold
         model.train()
         return best_threahold, best_f1
+
+    # def _inference(engine, cfg, model, valid_dataloader):
+    #     model.eval()
+    #     valid_features = []
+    #     with torch.no_grad():
+    #         for step, data in enumerate(valid_dataloader):
+    #             images, labels = data['img'], data['gt_label']
+    #             images, labels = images.cuda(), labels.cuda()
+    #
+    #             if cfg.fp16:
+    #                 with autocast():
+    #                     features = model(images)
+    #             else:
+    #                 features = model(images)
+    #             valid_features.append(features.data.cpu().numpy())
