@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from glob import glob
 import copy
+from tqdm import tqdm
+import mmcv
+
+
 def split_train_val():
     train_df = pd.read_csv(cfg.path_train_csv)
     train_df.columns = ['filename', 'label']
@@ -69,12 +73,21 @@ def get_id_distribution():
     df.plot.hist(bins=len(df['label'].unique()), alpha=0.5)
     plt.show()
 
+def generate_img():
+    train_imgs = np.load(cfg.path_raw_train_npy)
+    print(train_imgs.shape)
+    
+    for idx in tqdm(range(train_imgs.shape[0])):
+        mmcv.imwrite(train_imgs[idx, :, :, :], os.path.join(cfg.path_train_img, f'{idx}.png'))
+
+
 
 if __name__ == '__main__':
     cfg = Config.fromfile('config_data_utils_test.py')
+    generate_img()
 
     # generate_train_csv()
     # generate_test_csv()
     # split_train_val()
     # example()
-    get_id_distribution()
+    # get_id_distribution()
