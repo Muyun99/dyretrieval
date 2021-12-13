@@ -94,7 +94,12 @@ if __name__ == '__main__':
     ###################################################################################
     # Loss, Optimizer, LR_scheduler
     ###################################################################################
-    criterion = build_loss(cfg)
+    id_loss = build_loss(cfg)
+
+    def criterion(score, feature, target):
+        # return id_loss(score, target) + triplet_loss(feature, target)[0]
+        return id_loss(score, target)
+
     optimizer = build_optimizer(cfg=cfg, model=model)
     scheduler = build_scheduler(cfg=cfg, optimizer=optimizer)
 
@@ -130,14 +135,14 @@ if __name__ == '__main__':
         optimizer.zero_grad()
         if cfg.fp16 is True:
             with autocast():
-                logits = model(images, labels)
-                loss = criterion(logits, labels)
+                cls_score, global_features = model(images, labels)
+                loss = criterion(score=cls_score, feature=global_features, target=labels)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
         else:
-            logits = model(images, labels)
-            loss = criterion(logits, labels)
+            cls_score, global_features = model(images, labels)
+            loss = criterion(score=cls_score, feature=global_features, target=labels)
             loss.backward()
             optimizer.step()
 

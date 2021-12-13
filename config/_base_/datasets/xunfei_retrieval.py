@@ -10,7 +10,8 @@ img_norm_cfg = dict(
     std=[58.395, 57.12, 57.375],
     to_rgb=True)
 train_pipeline = [
-    dict(type='RandomResizedCrop', size=224),
+    dict(type='Resize', size=(400, 300)),
+    dict(type='RandomCrop', size=(384, 287)),
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='ImageToTensor', keys=['img']),
@@ -18,15 +19,14 @@ train_pipeline = [
     dict(type='Collect', keys=['img', 'gt_label'])
 ]
 valid_pipeline = [
-    dict(type='RandomResizedCrop', size=224),
+    dict(type='Resize', size=(384, 287)),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='ImageToTensor', keys=['img']),
     dict(type='ToTensor', keys=['gt_label']),
     dict(type='Collect', keys=['img', 'gt_label'])
 ]
 test_pipeline = [
-    dict(type='Resize', size=(256, -1)),
-    dict(type='CenterCrop', crop_size=224),
+    dict(type='Resize', size=(384, 287)),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='ImageToTensor', keys=['img']),
     dict(type='Collect', keys=['img'])

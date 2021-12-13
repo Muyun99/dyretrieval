@@ -44,13 +44,27 @@ class retrievalNet(nn.Module):
     def __init__(self, model_name, pretrained, num_classes):
         super(retrievalNet, self).__init__()
 
-        self.model = timm.create_model(model_name=model_name, pretrained=pretrained, num_classes=num_classes)
-        self.margin = ArcModule(in_features=self.model.classifier.in_features, out_features=num_classes)
-        self.model.classifier = nn.Identity()
+        self.num_classes = num_classes
+        self.model = timm.create_model(model_name=model_name, pretrained=pretrained, num_classes=self.num_classes)
+        
+
+        if 'resnet' in model_name:
+            self.in_planes = self.model.head.fc.in_channels
+            self.model.head.fc = nn.Identity()
+        elif 'efficientnet' in model_name:
+            self.in_planes = self.model.classifier.in_features
+            self.model.classifier = nn.Identity()
+        elif 'se' in model_name:
+            self.in_planes = self.model.last_linear.in_features
+            self.model.last_linear = nn.Identity()
+
+        self.margin = ArcModule(in_features=self.in_planes, out_features=self.num_classes)
 
     def forward(self, imgs, labels=None):
-        features = self.model(imgs)
-        features = F.normalize(features)
-        if labels is not None:
-            return self.margin(features, labels)
-        return features
+        global_features = self.model(imgs)
+        global_features = F.normalize(global_features)
+        if self.training:
+            cls_score = self.margin(global_features, labels)
+            return cls_score, global_features
+        else:
+            return global_features
