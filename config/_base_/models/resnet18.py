@@ -1,5 +1,6 @@
 model = 'resnet18'
 pretrained = True
+resume_path = None
 
 # get_loss
 loss1 = dict(type='CrossEntropyLoss')
@@ -7,4 +8,3 @@ loss1 = dict(type='CrossEntropyLoss')
 loss2 = dict(type='TripletLoss', margin=0.3)
 
 bnn_neck = False
-

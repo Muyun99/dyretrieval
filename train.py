@@ -152,14 +152,14 @@ if __name__ == '__main__':
         optimizer.zero_grad()
         if cfg.fp16 is True:
             with autocast():
-                cls_score, global_features = model(images, labels)
+                cls_score, global_features = model(images)
                 loss = criterion(
                     score=cls_score, feature=global_features, target=labels)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
         else:
-            cls_score, global_features = model(images, labels)
+            cls_score, global_features = model(images)
             loss = criterion(
                 score=cls_score, feature=global_features, target=labels)
             loss.backward()
