@@ -9,6 +9,7 @@ from tools.torch_utils import *
 
 from torch.cuda.amp import GradScaler, autocast
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a models')
     parser.add_argument('config', help='train config file path')
@@ -43,6 +44,7 @@ def parse_args():
     args = parser.parse_args()
 
     return args
+
 
 if __name__ == '__main__':
     args = parse_args()
@@ -96,20 +98,16 @@ if __name__ == '__main__':
     if cfg.parallel:
         model = nn.DataParallel(model)
 
+    def load_model_func(): return load_model(
+        model, cfg.model_path, parallel=cfg.parallel)
 
-    load_model_func = lambda: load_model(model, cfg.model_path, parallel=cfg.parallel)
-    save_model_func = lambda: save_model(model, cfg.model_path, parallel=cfg.parallel)
+    def save_model_func(): return save_model(
+        model, cfg.model_path, parallel=cfg.parallel)
 
     ###################################################################################
     # Loss, Optimizer, LR_scheduler
     ###################################################################################
-<<<<<<< HEAD
-    id_loss = build_loss(cfg)
 
-    def criterion(score, feature, target):
-        # return id_loss(score, target) + triplet_loss(feature, target)[0]
-        return id_loss(score, target)
-=======
     # id_loss 取值 CrossEntropyLoss、CrossEntropyLabelSmooth
     id_loss = build_loss(cfg.loss1, num_classes=cfg.num_classes)
 
@@ -118,7 +116,6 @@ if __name__ == '__main__':
 
     def criterion(score, feature, target):
         return id_loss(score, target) + triplet_loss(feature, target)[0]
->>>>>>> 5b282ba08b0dbfa80cc6e1cfce0ba624310b8cfd
 
     optimizer = build_optimizer(cfg=cfg, model=model)
     scheduler = build_scheduler(cfg=cfg, optimizer=optimizer)
@@ -141,7 +138,6 @@ if __name__ == '__main__':
     train_meter = Average_Meter(['loss'])
     iteration = 0
 
-
     if cfg.fp16 is True:
         scaler = GradScaler()
     else:
@@ -150,27 +146,22 @@ if __name__ == '__main__':
     for iteration in range(max_iteration):
         data = train_iterator.get()
         images, labels = data['img'], data['gt_label']
-        images, labels = images.cuda(non_blocking=True), labels.cuda(non_blocking=True)
+        images, labels = images.cuda(
+            non_blocking=True), labels.cuda(non_blocking=True)
 
         optimizer.zero_grad()
         if cfg.fp16 is True:
             with autocast():
-<<<<<<< HEAD
                 cls_score, global_features = model(images, labels)
-=======
-                cls_score, global_features = model(images)
->>>>>>> 5b282ba08b0dbfa80cc6e1cfce0ba624310b8cfd
-                loss = criterion(score=cls_score, feature=global_features, target=labels)
+                loss = criterion(
+                    score=cls_score, feature=global_features, target=labels)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
         else:
-<<<<<<< HEAD
             cls_score, global_features = model(images, labels)
-=======
-            cls_score, global_features = model(images)
->>>>>>> 5b282ba08b0dbfa80cc6e1cfce0ba624310b8cfd
-            loss = criterion(score=cls_score, feature=global_features, target=labels)
+            loss = criterion(
+                score=cls_score, feature=global_features, target=labels)
             loss.backward()
             optimizer.step()
 
@@ -201,7 +192,8 @@ if __name__ == '__main__':
             eval_timer.tik()
             model.eval()
 
-            threahold, f1_score = valid_dataset.evaluate(cfg=cfg, model=model, valid_dataloader=valid_dataloader)
+            threahold, f1_score = valid_dataset.evaluate(
+                cfg=cfg, model=model, valid_dataloader=valid_dataloader)
 
             model.train()
             time = eval_timer.tok(clear=True)
@@ -214,20 +206,19 @@ if __name__ == '__main__':
             else:
                 best_flag = 0
 
-
             log_func(f'[i] iteration = {iteration + 1} \
                 time = {time} sec \
                 valid_F1 = {f1_score*100 :.4f} \
                 best_valid_F1 = {best_f1_score*100 :.4f}'
-                )
+                     )
             if best_flag == 1:
                 log_func('[i] save models')
 
-
-
             writer.add_scalar('Evaluation/valid_F1', f1_score, iteration)
-            writer.add_scalar('Evaluation/best_valid_F1', best_f1_score, iteration)
-            writer.add_scalar('Evaluation/best_threahold', best_threahold, iteration)
+            writer.add_scalar('Evaluation/best_valid_F1',
+                              best_f1_score, iteration)
+            writer.add_scalar('Evaluation/best_threahold',
+                              best_threahold, iteration)
 
         #################################################################################################
         # For Step()

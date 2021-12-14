@@ -132,7 +132,8 @@ python train.py config/resnet/resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth
 # python test.py config/resnet/resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size.py --tag new_baseline_efficientnet_b3_fold2_120epoch --options "model=efficientnet_b3" "data.train.ann_file=train_fold2.csv" "data.val.ann_file=valid_fold2.csv"
 # python test.py config/resnet/resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size.py --tag new_baseline_efficientnet_b3_fold3_120epoch --options "model=efficientnet_b3" "data.train.ann_file=train_fold3.csv" "data.val.ann_file=valid_fold3.csv"
 # python test.py config/resnet/resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size.py --tag new_baseline_efficientnet_b3_fold4_120epoch --options "model=efficientnet_b3" "data.train.ann_file=train_fold4.csv" "data.val.ann_file=valid_fold4.csv"
-#
+
+
 # python test.py config/resnet/resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size.py --tag new_baseline_efficientnet_b0_fold0_120epoch --options "model=efficientnet_b0" "data.train.ann_file=train_fold0.csv" "data.val.ann_file=valid_fold0.csv"
 # python test.py config/resnet/resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size.py --tag new_baseline_efficientnet_b0_fold1_120epoch --options "model=efficientnet_b0" "data.train.ann_file=train_fold1.csv" "data.val.ann_file=valid_fold1.csv"
 # python test.py config/resnet/resnet18_b16x8_xunfei_face_warmup_REA_Label_smooth_bigger_size.py --tag new_baseline_efficientnet_b0_fold2_120epoch --options "model=efficientnet_b0" "data.train.ann_file=train_fold2.csv" "data.val.ann_file=valid_fold2.csv"
